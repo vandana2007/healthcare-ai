@@ -8,7 +8,7 @@ This is Django's central configuration file.
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-
+import dj_database_url
 # --------------------------------------------------
 # STEP 1: Load environment variables from .env
 # --------------------------------------------------
@@ -57,6 +57,7 @@ INSTALLED_APPS = [
 # --------------------------------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -96,14 +97,10 @@ WSGI_APPLICATION = "healthcare_project.wsgi.application"
 # STEP 8: Database configuration (PostgreSQL)
 # --------------------------------------------------
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME", "healthcare_ai"),
-        "USER": os.getenv("DB_USER", "postgres"),
-        "PASSWORD": os.getenv("DB_PASSWORD", ""),
-        "HOST": os.getenv("DB_HOST", "localhost"),
-        "PORT": os.getenv("DB_PORT", "5432"),
-    }
+    "default": dj_database_url.config(
+        default=f"postgresql://{os.getenv('DB_USER', 'postgres')}:{os.getenv('DB_PASSWORD', '')}@{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '5432')}/{os.getenv('DB_NAME', 'healthcare_ai')}",
+        conn_max_age=600,
+    )
 }
 
 # --------------------------------------------------
@@ -129,7 +126,7 @@ USE_TZ = True
 # --------------------------------------------------
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
