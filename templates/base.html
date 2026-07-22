@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI Healthcare Assistant{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        /* ==========================================================
+           THEME VARIABLES — Purple/Indigo
+           ========================================================== */
+        /* ==========================================================
+           MARKDOWN-RENDERED AI EXPLANATION STYLING
+           ========================================================== */
+        /* ==========================================================
+           USER GREETING BADGE — non-interactive, visually distinct
+           from clickable nav links
+           ========================================================== */
+        .user-greeting {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: rgba(255, 255, 255, 0.15);
+            color: var(--theme-text-on-primary);
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+           #ai-explanation-rendered h2 {
+            color: var(--theme-primary-dark);
+            font-size: 1.15rem;
+            margin-top: 1.2rem;
+            margin-bottom: 0.6rem;
+            font-weight: 600;
+        }
+        #ai-explanation-rendered h2:first-child {
+            margin-top: 0;
+        }
+        #ai-explanation-rendered ul {
+            padding-left: 1.3rem;
+        }
+        #ai-explanation-rendered li {
+            margin-bottom: 0.4rem;
+        }
+        #ai-explanation-rendered strong {
+            color: #333;
+        }
+        #ai-explanation-rendered hr {
+            border-top: 1px solid #e0d4f5;
+            margin: 1rem 0;
+        }
+        /* ==========================================================
+           STYLED DROPDOWNS (selects) — interactive feel
+           ========================================================== */
+        .form-select {
+            transition: all 0.25s ease;
+            cursor: pointer;
+            border-width: 1.5px;
+        }
+
+        .form-select:hover {
+            border-color: var(--theme-primary);
+            box-shadow: 0 2px 8px rgba(111, 66, 193, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .form-select:focus {
+            border-color: var(--theme-primary);
+            box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.2);
+        }
+
+        /* --------------------------------------------------
+           Status dropdown — background color shifts to match
+           the selected status, giving instant visual feedback.
+        -------------------------------------------------- */
+        .status-select {
+            font-weight: 600;
+            border-radius: 8px !important;
+        }
+        .status-select.status-pending {
+            background-color: #fff8e1;
+            color: #997404;
+            border-color: #ffe69c !important;
+        }
+        .status-select.status-confirmed {
+            background-color: #e6f4ea;
+            color: #146c43;
+            border-color: #a3d9b1 !important;
+        }
+        .status-select.status-completed {
+            background-color: #eceff1;
+            color: #495057;
+            border-color: #ced4da !important;
+        }
+        .status-select.status-cancelled {
+            background-color: #fdecea;
+            color: #b02a37;
+            border-color: #f1aeb5 !important;
+        }
+
+        /* Pulse animation when status changes (brief confirmation flash) */
+        @keyframes statusPulse {
+            0%   { transform: scale(1); }
+            50%  { transform: scale(1.04); }
+            100% { transform: scale(1); }
+        }
+        .status-select.just-changed {
+            animation: statusPulse 0.35s ease;
+        }
+        :root {
+            --theme-primary: #6f42c1;
+            --theme-primary-dark: #59339d;
+            --theme-light: #f0e9fb;
+            --theme-text-on-primary: #ffffff;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+        }
+
+        .navbar-custom {
+            background-color: var(--theme-primary) !important;
+        }
+
+        .navbar-custom .navbar-brand,
+        .navbar-custom .nav-link {
+            color: var(--theme-text-on-primary) !important;
+        }
+
+        .navbar-custom .nav-link:hover {
+            color: var(--theme-light) !important;
+        }
+
+        .btn-primary {
+            background-color: var(--theme-primary);
+            border-color: var(--theme-primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--theme-primary-dark);
+            border-color: var(--theme-primary-dark);
+        }
+
+        .card-header-custom {
+            background-color: var(--theme-light);
+            color: var(--theme-primary-dark);
+            font-weight: 600;
+        }
+
+        .text-theme {
+            color: var(--theme-primary) !important;
+        }
+
+        .badge-theme {
+            background-color: var(--theme-primary) !important;
+        }
+
+        footer {
+            background-color: #f1f3f5;
+            padding: 15px 0;
+            margin-top: 40px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .main-container {
+            min-height: calc(100vh - 220px);
+            padding-top: 30px;
+            padding-bottom: 30px;
+        }
+
+        /* ==========================================================
+           ANIMATIONS & INTERACTIVITY
+           ========================================================== */
+
+        .main-container {
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(111, 66, 193, 0.15) !important;
+        }
+
+        .btn {
+            transition: all 0.2s ease;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .navbar-custom .nav-link {
+            position: relative;
+        }
+        .navbar-custom .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0%;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: white;
+            transition: width 0.3s ease;
+        }
+        .navbar-custom .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .table-hover tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        .alert {
+            animation: slideDown 0.4s ease-out;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --------------------------------------------------
+           SCROLLING HEALTH TIPS TICKER
+        -------------------------------------------------- */
+        .ticker-wrap {
+            background-color: var(--theme-light);
+            border-bottom: 1px solid var(--theme-primary);
+            overflow: hidden;
+            padding: 8px 0;
+            white-space: nowrap;
+        }
+        .ticker-content {
+            display: inline-block;
+            padding-left: 100%;
+            animation: ticker-scroll 35s linear infinite;
+            color: var(--theme-primary-dark);
+            font-weight: 500;
+        }
+        .ticker-wrap:hover .ticker-content {
+            animation-play-state: paused;
+        }
+        @keyframes ticker-scroll {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+        .ticker-content i {
+            margin: 0 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================== NAVBAR ============================== -->
+    <nav class="navbar navbar-expand-lg navbar-custom shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{% if user.is_authenticated %}{% if user.doctor_profile %}{% url 'doctor_dashboard_view' %}{% else %}{% url 'chat_view' %}{% endif %}{% else %}{% url 'login_view' %}{% endif %}">
+                <i class="bi bi-hospital-fill"></i> AI Healthcare Assistant
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-lg-center">
+                    {% if user.is_authenticated %}
+                        {% if user.doctor_profile %}
+                            <li class="nav-item"><a class="nav-link" href="{% url 'doctor_dashboard_view' %}"><i class="bi bi-calendar-check"></i> My Appointments</a></li>
+                            <li class="nav-item ms-lg-3 my-1 my-lg-0">
+                                <span class="user-greeting"><i class="bi bi-person-circle"></i> Hello, Dr. {{ user.doctor_profile.full_name }}</span>
+                            </li>
+                        {% else %}
+                            <li class="nav-item"><a class="nav-link" href="{% url 'chat_view' %}"><i class="bi bi-chat-dots"></i> Chat</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'hospital_search_view' %}"><i class="bi bi-geo-alt"></i> Find Hospitals</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'appointment_list_view' %}"><i class="bi bi-calendar-plus"></i> Appointments</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'reminder_list_view' %}"><i class="bi bi-bell"></i> Reminders</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'report_list_view' %}"><i class="bi bi-file-earmark-medical"></i> Reports</a></li>
+                            <li class="nav-item ms-lg-3 my-1 my-lg-0">
+                                <span class="user-greeting"><i class="bi bi-person-circle"></i> Hello, {{ user.username }}</span>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item ms-lg-3 mt-1 mt-lg-0">
+                            <a class="btn btn-outline-light btn-sm" href="{% url 'logout_confirm_view' %}">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'login_view' %}">Login</a></li>
+                        <li class="nav-item">
+                            <a class="btn btn-outline-light btn-sm ms-lg-2" href="{% url 'signup_view' %}">Sign Up</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ============================== HEALTH TIPS TICKER ============================== -->
+    <div class="ticker-wrap">
+        <div class="ticker-content">
+            <i class="bi bi-heart-pulse-fill text-theme"></i> Drink at least 8 glasses of water daily
+            <i class="bi bi-dot"></i> Get 7-8 hours of sleep for better immunity
+            <i class="bi bi-dot"></i> Regular exercise reduces risk of chronic disease
+            <i class="bi bi-dot"></i> Don't skip your medicine reminders — consistency matters
+            <i class="bi bi-dot"></i> Wash your hands regularly to prevent infections
+            <i class="bi bi-dot"></i> Book regular health checkups even when you feel fine
+            <i class="bi bi-dot"></i> Eat a balanced diet rich in fruits and vegetables
+        </div>
+    </div>
+
+    <!-- ============================== MESSAGES ============================== -->
+    <div class="container mt-3">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}danger{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- ============================== PAGE CONTENT ============================== -->
+    <div class="container main-container">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- ============================== FOOTER ============================== -->
+    <footer>
+        <div class="container">
+            &copy; 2026 AI Healthcare Assistant. Built for informational purposes — always consult a qualified doctor.
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle (includes Popper for dropdowns/navbar toggle) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+
+    {% if user.is_authenticated and not user.doctor_profile %}
+    <script>
+    // --------------------------------------------------
+    // MEDICINE REMINDER NOTIFICATIONS
+    // --------------------------------------------------
+    if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+    }
+    const notifiedToday = new Set();
+    function checkReminders() {
+        fetch("/reminders/ajax/active-times/")
+            .then(response => response.json())
+            .then(data => {
+                const now = new Date();
+                const currentTime = now.toTimeString().slice(0, 5);
+                const todayKey = now.toDateString();
+                data.reminders.forEach(reminder => {
+                    reminder.times.forEach(time => {
+                        const uniqueKey = `${todayKey}-${reminder.medicine_name}-${time}`;
+                        if (time === currentTime && !notifiedToday.has(uniqueKey)) {
+                            notifiedToday.add(uniqueKey);
+                            if (Notification.permission === "granted") {
+                                new Notification("💊 Medicine Reminder", {
+                                    body: `Time to take ${reminder.medicine_name}${reminder.dosage ? " (" + reminder.dosage + ")" : ""}`,
+                                });
+                            }
+                        }
+                    });
+                });
+            });
+    }
+    setInterval(checkReminders, 30000);
+    checkReminders();
+    </script>
+    {% endif %}
+</body>
+</html>

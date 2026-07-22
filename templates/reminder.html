@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Medicine Reminders{% endblock %}
+
+{% block content %}
+<h2 class="text-theme mb-4"><i class="bi bi-bell-fill"></i> Medicine Reminders</h2>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-4">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Medicine Name</label>
+                    <input type="text" name="medicine_name" class="form-control" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Dosage <span class="text-muted small">(optional)</span></label>
+                    <input type="text" name="dosage" class="form-control" placeholder="e.g., 500mg">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Frequency</label>
+                    <select id="frequency-select" name="frequency" class="form-select" onchange="updateTimeInputs()">
+                        <option value="daily">Daily (1 time)</option>
+                        <option value="twice_daily">Twice Daily (2 times)</option>
+                        <option value="thrice_daily">Thrice Daily (3 times)</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6" id="time-inputs-container">
+                    <label class="form-label">Time 1</label>
+                    <input type="time" name="times" class="form-control" required>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Notes <span class="text-muted small">(optional)</span></label>
+                    <textarea name="notes" class="form-control" rows="2" placeholder="e.g., take with food"></textarea>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-4 px-4">
+                <i class="bi bi-plus-circle"></i> Add Reminder
+            </button>
+        </form>
+    </div>
+</div>
+
+<h4 class="mb-3"><i class="bi bi-list-check"></i> Your Reminders</h4>
+
+<div class="row g-3">
+    {% for reminder in reminders %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm border-0 {% if not reminder.is_active %}opacity-50{% endif %}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="mb-0"><i class="bi bi-capsule text-theme"></i> {{ reminder.medicine_name }}</h5>
+                    <span class="badge {% if reminder.is_active %}bg-success{% else %}bg-secondary{% endif %} rounded-pill">
+                        {% if reminder.is_active %}Active{% else %}Paused{% endif %}
+                    </span>
+                </div>
+                {% if reminder.dosage %}
+                    <p class="text-muted small mb-1"><i class="bi bi-eyedropper"></i> {{ reminder.dosage }}</p>
+                {% endif %}
+                <p class="text-muted small mb-1"><i class="bi bi-clock"></i> {{ reminder.times }}</p>
+                <p class="text-muted small mb-3"><i class="bi bi-arrow-repeat"></i> {{ reminder.get_frequency_display }}</p>
+                {% if reminder.notes %}
+                    <p class="small fst-italic text-muted mb-3">"{{ reminder.notes }}"</p>
+                {% endif %}
+
+                <div class="d-flex gap-2">
+                    <form method="post" action="{% url 'reminder_toggle_view' reminder.id %}" class="flex-fill">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                            {% if reminder.is_active %}
+                                <i class="bi bi-pause-circle"></i> Pause
+                            {% else %}
+                                <i class="bi bi-play-circle"></i> Resume
+                            {% endif %}
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'reminder_delete_view' reminder.id %}" class="flex-fill">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger btn-sm w-100" onclick="return confirm('Delete this reminder?');">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-bell-slash" style="font-size: 2.5rem;"></i>
+            <p class="mt-2">No reminders set yet.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+function updateTimeInputs() {
+    const frequency = document.getElementById("frequency-select").value;
+    const container = document.getElementById("time-inputs-container");
+
+    const timeCounts = {
+        "daily": 1,
+        "twice_daily": 2,
+        "thrice_daily": 3,
+    };
+    const count = timeCounts[frequency] || 1;
+
+    container.innerHTML = "";
+    for (let i = 1; i <= count; i++) {
+        container.innerHTML += `
+            <label class="form-label">Time ${i}</label>
+            <input type="time" name="times" class="form-control mb-2" required>
+        `;
+    }
+}
+</script>
+{% endblock %}

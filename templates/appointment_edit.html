@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Edit Appointment{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="text-theme mb-4"><i class="bi bi-pencil-square"></i> Edit Appointment</h3>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Patient Name</label>
+                            <input type="text" name="patient_name" class="form-control" value="{{ appointment.patient_name }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Hospital</label>
+                            <select id="hospital-select" class="form-select" required>
+                                {% for hospital in hospitals %}
+                                    <option value="{{ hospital.id }}" {% if preselected_hospital_id == hospital.id %}selected{% endif %}>
+                                        {{ hospital.name }} ({{ hospital.city }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Doctor</label>
+                            <select id="doctor-select" name="doctor" class="form-select" required>
+                                <option value="{{ appointment.doctor.id }}" selected>
+                                    Dr. {{ appointment.doctor.full_name }} — {{ appointment.doctor.get_specialization_display }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Date</label>
+                            <input type="date" id="date-select" name="appointment_date" class="form-control"
+                                   value="{{ appointment.appointment_date|date:'Y-m-d' }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Available Time Slots</label>
+                            <select id="slot-select" name="appointment_time" class="form-select" required>
+                                <option value="{{ appointment.appointment_time|time:'H:i' }}" selected>
+                                    {{ appointment.appointment_time|time:'H:i' }} (current)
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Reason</label>
+                            <input type="text" name="reason" class="form-control" value="{{ appointment.reason }}" required>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary flex-fill">
+                            <i class="bi bi-check-circle"></i> Save Changes
+                        </button>
+                        <a href="{% url 'appointment_list_view' %}" class="btn btn-outline-secondary flex-fill">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const appointmentId = "{{ appointment.id }}";
+
+function loadDoctorsForHospital(hospitalId, preselectDoctorId) {
+    const doctorSelect = document.getElementById("doctor-select");
+    doctorSelect.innerHTML = '<option value="">Loading...</option>';
+
+    fetch(`/appointments/ajax/doctors/?hospital_id=${hospitalId}`)
+        .then(response => response.json())
+        .then(data => {
+            doctorSelect.innerHTML = '<option value="">-- Select Doctor --</option>';
+            data.doctors.forEach(doc => {
+                const option = document.createElement("option");
+                option.value = doc.id;
+                option.textContent = doc.label;
+                if (String(doc.id) === String(preselectDoctorId)) {
+                    option.selected = true;
+                }
+                doctorSelect.appendChild(option);
+            });
+        });
+}
+
+function loadSlots(preselectTime) {
+    const doctorId = document.getElementById("doctor-select").value;
+    const date = document.getElementById("date-select").value;
+    const slotSelect = document.getElementById("slot-select");
+
+    if (!doctorId || !date) return;
+
+    slotSelect.innerHTML = '<option value="">Loading...</option>';
+
+    fetch(`/appointments/ajax/slots/?doctor_id=${doctorId}&date=${date}&exclude_appointment_id=${appointmentId}`)
+        .then(response => response.json())
+        .then(data => {
+            slotSelect.innerHTML = '';
+            let slots = data.slots;
+
+            // Always include the current time as an option too,
+            // even if it wouldn't normally appear (it's this
+            // appointment's own slot, already excluded server-side).
+            if (preselectTime && !slots.includes(preselectTime)) {
+                slots = [preselectTime, ...slots];
+            }
+
+            if (slots.length === 0) {
+                slotSelect.innerHTML = '<option value="">No slots available this day</option>';
+                return;
+            }
+
+            slots.forEach(slot => {
+                const option = document.createElement("option");
+                option.value = slot;
+                option.textContent = slot === preselectTime ? `${slot} (current)` : slot;
+                if (slot === preselectTime) option.selected = true;
+                slotSelect.appendChild(option);
+            });
+        });
+}
+
+document.getElementById("hospital-select").addEventListener("change", function() {
+    loadDoctorsForHospital(this.value, null);
+});
+
+document.getElementById("doctor-select").addEventListener("change", function() {
+    loadSlots(null);
+});
+
+document.getElementById("date-select").addEventListener("change", function() {
+    loadSlots(null);
+});
+
+// On page load: populate doctor dropdown for the pre-selected hospital,
+// and slots for the current doctor+date, preserving the current time.
+window.addEventListener("DOMContentLoaded", function() {
+    const currentTime = "{{ appointment.appointment_time|time:'H:i' }}";
+    loadDoctorsForHospital("{{ preselected_hospital_id }}", "{{ preselected_doctor_id }}");
+    loadSlots(currentTime);
+});
+</script>
+{% endblock %}

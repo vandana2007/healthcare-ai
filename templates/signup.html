@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h2 class="text-center text-theme mb-4"><i class="bi bi-person-plus"></i> Create an Account</h2>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label d-block">I am a:</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="role" id="role-patient" value="patient" checked onclick="toggleDoctorFields()">
+                            <label class="btn btn-outline-primary" for="role-patient"><i class="bi bi-person"></i> Patient</label>
+
+                            <input type="radio" class="btn-check" name="role" id="role-doctor" value="doctor" onclick="toggleDoctorFields()">
+                            <label class="btn btn-outline-primary" for="role-doctor"><i class="bi bi-heart-pulse"></i> Doctor</label>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" name="username" class="form-control" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Confirm Password</label>
+                            <input type="password" name="confirm_password" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div id="doctor-fields" class="card bg-light border-0 p-3 mb-3" style="display:none;">
+                        <h5 class="text-theme mb-3"><i class="bi bi-clipboard2-pulse"></i> Doctor Details</h5>
+
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" name="full_name" class="form-control" placeholder="Dr. Ramesh Kumar">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Specialization</label>
+                                <select name="specialization" class="form-select">
+                                    <option value="general_physician">General Physician</option>
+                                    <option value="cardiologist">Cardiologist</option>
+                                    <option value="dermatologist">Dermatologist</option>
+                                    <option value="pediatrician">Pediatrician</option>
+                                    <option value="orthopedic">Orthopedic</option>
+                                    <option value="ent">ENT Specialist</option>
+                                    <option value="gynecologist">Gynecologist</option>
+                                    <option value="neurologist">Neurologist</option>
+                                    <option value="psychiatrist">Psychiatrist</option>
+                                    <option value="dentist">Dentist</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Hospital</label>
+                                <select name="hospital" class="form-select">
+                                    {% for hospital in hospitals %}
+                                        <option value="{{ hospital.id }}">{{ hospital.name }} ({{ hospital.city }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label d-block">Available Days</label>
+                            <div class="d-flex flex-wrap gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="available_days" value="0" id="day0" checked>
+                                    <label class="form-check-label" for="day0">Mon</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="available_days" value="1" id="day1" checked>
+                                    <label class="form-check-label" for="day1">Tue</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="available_days" value="2" id="day2" checked>
+                                    <label class="form-check-label" for="day2">Wed</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="available_days" value="3" id="day3" checked>
+                                    <label class="form-check-label" for="day3">Thu</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="available_days" value="4" id="day4" checked>
+                                    <label class="form-check-label" for="day4">Fri</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="available_days" value="5" id="day5">
+                                    <label class="form-check-label" for="day5">Sat</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="available_days" value="6" id="day6">
+                                    <label class="form-check-label" for="day6">Sun</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Available From</label>
+                                <input type="time" name="available_from" class="form-control" value="09:00">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Available To</label>
+                                <input type="time" name="available_to" class="form-control" value="17:00">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Years of Experience</label>
+                                <input type="number" name="years_of_experience" class="form-control" min="0" value="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+                </form>
+
+                <p class="text-center mt-3 mb-0">
+                    Already have an account? <a href="{% url 'login_view' %}" class="text-theme">Log in</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleDoctorFields() {
+    const isDoctor = document.querySelector('input[name="role"]:checked').value === "doctor";
+    document.getElementById("doctor-fields").style.display = isDoctor ? "block" : "none";
+}
+</script>
+{% endblock %}

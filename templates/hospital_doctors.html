@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Doctors at {{ hospital.name }}{% endblock %}
+
+{% block content %}
+<a href="{% url 'hospital_search_view' %}" class="text-decoration-none text-muted mb-3 d-inline-block">
+    <i class="bi bi-arrow-left"></i> Back to Hospital Search
+</a>
+
+<h2 class="text-theme mb-1"><i class="bi bi-hospital-fill"></i> {{ hospital.name }}</h2>
+<p class="text-muted mb-4"><i class="bi bi-geo-alt"></i> {{ hospital.address }}, {{ hospital.city }}</p>
+
+<h4 class="mb-3">Available Doctors</h4>
+
+<div class="row g-4">
+    {% for doctor in doctors %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body">
+                <h5 class="text-theme mb-1"><i class="bi bi-person-badge-fill"></i> Dr. {{ doctor.full_name }}</h5>
+                <span class="badge badge-theme rounded-pill mb-2">{{ doctor.get_specialization_display }}</span>
+                <p class="text-muted small mb-1"><i class="bi bi-briefcase"></i> {{ doctor.years_of_experience }} years experience</p>
+                <p class="text-muted small mb-3">
+                    <i class="bi bi-clock"></i> {{ doctor.available_from }} - {{ doctor.available_to }}
+                </p>
+                <a href="{% url 'appointment_list_view' %}?hospital={{ hospital.id }}&doctor={{ doctor.id }}" class="btn btn-outline-primary btn-sm w-100">
+    <i class="bi bi-calendar-plus"></i> Book Appointment
+</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-person-x" style="font-size: 2.5rem;"></i>
+            <p class="mt-2">No doctors currently listed at this hospital.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

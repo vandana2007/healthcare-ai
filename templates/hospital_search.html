@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Find Hospitals{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <h2 class="text-theme"><i class="bi bi-geo-alt-fill"></i> Find Hospitals Near You</h2>
+    <p class="text-muted">Enter your city or area to see hospitals sorted by real distance.</p>
+</div>
+
+<div class="row justify-content-center mb-4">
+    <div class="col-md-6">
+        <form method="post" class="d-flex gap-2">
+            {% csrf_token %}
+            <input type="text" name="location" class="form-control form-control-lg shadow-sm"
+                   placeholder="e.g., Kadapa, Andhra Pradesh"
+                   value="{{ searched_location|default:'' }}" required>
+            <button type="submit" class="btn btn-primary btn-lg px-4">
+                <i class="bi bi-search"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+{% if results is None %}
+    <div class="alert alert-warning text-center">
+        <i class="bi bi-exclamation-circle"></i>
+        Sorry, we couldn't find that location. Please try a more specific city/area name.
+    </div>
+{% elif results %}
+    <h4 class="mb-3">Hospitals near "<span class="text-theme">{{ searched_location }}</span>"</h4>
+
+    <div class="row g-4">
+        {% for item in results %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title text-theme mb-0"><i class="bi bi-hospital"></i> {{ item.hospital.name }}</h5>
+                        <span class="badge badge-theme rounded-pill">{{ item.distance_km }} km</span>
+                    </div>
+                    <p class="text-muted small mb-1"><i class="bi bi-geo"></i> {{ item.hospital.city }}</p>
+                    <p class="text-muted small">{{ item.hospital.address }}</p>
+                    <a href="{% url 'hospital_doctors_view' item.hospital.id %}" class="btn btn-outline-primary btn-sm w-100">
+    <i class="bi bi-people"></i> View Doctors
+</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<p class="text-center text-muted small mt-4">
+    <i class="bi bi-info-circle"></i> Hospital data © OpenStreetMap contributors. Listings shown for informational purposes.
+</p>
+{% endblock %}

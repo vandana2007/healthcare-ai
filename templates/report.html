@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Medical Reports{% endblock %}
+
+{% block content %}
+<h2 class="text-theme mb-1"><i class="bi bi-file-earmark-medical-fill"></i> Medical Report Summarizer</h2>
+<p class="text-muted mb-4">Upload a PDF or image of your medical report to get a simplified explanation.</p>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-4">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Select File (PDF or image)</label>
+                <input type="file" name="report_file" class="form-control"
+                       accept=".pdf,.jpg,.jpeg,.png,.bmp,.tiff" required>
+            </div>
+            <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-cloud-upload"></i> Upload and Analyze
+            </button>
+        </form>
+    </div>
+</div>
+
+<h4 class="mb-3"><i class="bi bi-clock-history"></i> Your Reports</h4>
+
+<div class="row g-3">
+    {% for report in reports %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <i class="bi bi-file-earmark-text text-theme" style="font-size: 1.5rem;"></i>
+                    <span class="badge
+                        {% if report.status == 'completed' %}bg-success
+                        {% elif report.status == 'processing' %}bg-warning text-dark
+                        {% else %}bg-danger{% endif %} rounded-pill">
+                        {{ report.get_status_display }}
+                    </span>
+                </div>
+                <h6 class="mb-1 text-truncate" title="{{ report.original_filename }}">{{ report.original_filename }}</h6>
+                <p class="text-muted small mb-3"><i class="bi bi-calendar3"></i> {{ report.uploaded_at|date:"M d, Y H:i" }}</p>
+
+                <div class="d-flex gap-2">
+                    <a href="{% url 'report_detail_view' report.id %}" class="btn btn-outline-primary btn-sm flex-fill">
+                        <i class="bi bi-eye"></i> View
+                    </a>
+                    <form method="post" action="{% url 'report_delete_view' report.id %}" class="flex-fill">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger btn-sm w-100" onclick="return confirm('Delete this report?');">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-file-earmark-x" style="font-size: 2.5rem;"></i>
+            <p class="mt-2">No reports uploaded yet.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

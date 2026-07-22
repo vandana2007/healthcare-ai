@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Logout{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4 text-center">
+                <i class="bi bi-box-arrow-right text-theme" style="font-size: 2.5rem;"></i>
+                <h2 class="mt-3">Log Out</h2>
+                <p class="text-muted">What would you like to do with your saved data (appointments, reminders, reports, chat history)?</p>
+
+                <form method="post" action="{% url 'logout_process_view' %}" class="text-start mt-4">
+                    {% csrf_token %}
+
+                    <div class="form-check mb-3 p-3 border rounded logout-option">
+                        <input class="form-check-input" type="radio" name="data_choice" value="keep" id="keep-data" checked>
+                        <label class="form-check-label w-100" for="keep-data" style="cursor:pointer;">
+                            <i class="bi bi-shield-check text-success"></i> <strong>Keep my data</strong> for next time I log in
+                        </label>
+                    </div>
+
+                    <div class="form-check mb-4 p-3 border rounded logout-option">
+                        <input class="form-check-input" type="radio" name="data_choice" value="clear" id="clear-data">
+                        <label class="form-check-label w-100" for="clear-data" style="cursor:pointer;">
+                            <i class="bi bi-trash text-danger"></i> <strong>Clear all my data</strong> permanently
+                        </label>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <a href="{% url 'chat_view' %}" class="btn btn-outline-secondary flex-fill">
+                            <i class="bi bi-arrow-left-circle"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary flex-fill" onclick="return confirm('Are you sure? This will log you out.');">
+                            <i class="bi bi-box-arrow-right"></i> Confirm Logout
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .logout-option {
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    .logout-option:hover {
+        border-color: var(--theme-primary) !important;
+        background-color: var(--theme-light);
+        transform: translateY(-1px);
+    }
+    .logout-option:has(input:checked) {
+        border-color: var(--theme-primary) !important;
+        border-width: 2px !important;
+        background-color: var(--theme-light);
+    }
+</style>
+
+<script>
+    // Clicking anywhere in the option box selects that radio button
+    document.querySelectorAll('.logout-option').forEach(option => {
+        option.addEventListener('click', function() {
+            this.querySelector('input[type="radio"]').checked = true;
+        });
+    });
+</script>
+{% endblock %}

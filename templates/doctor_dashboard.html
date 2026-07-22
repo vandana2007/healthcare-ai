@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}My Appointments{% endblock %}
+
+{% block content %}
+<div class="card shadow border-0 mb-4 overflow-hidden">
+    <div class="p-4 text-white" style="background: linear-gradient(135deg, var(--theme-primary), var(--theme-primary-dark));">
+        <h3 class="mb-1"><i class="bi bi-person-badge-fill"></i> Dr. {{ doctor.full_name }}</h3>
+        <p class="mb-0 opacity-75">
+            <i class="bi bi-clipboard2-pulse"></i> {{ doctor.get_specialization_display }}
+            &nbsp;|&nbsp;
+            <i class="bi bi-hospital"></i> {{ doctor.hospital.name }}
+        </p>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h4 class="mb-0"><i class="bi bi-calendar-week"></i> Your Appointments</h4>
+    <span class="badge badge-theme rounded-pill fs-6">{{ appointments.count }} total</span>
+</div>
+
+<div class="row g-3">
+    {% for appt in appointments %}
+    <div class="col-12 col-lg-6 col-xl-4 dash-card-wrap">
+        <div class="card h-100 shadow-sm border-0 border-start border-4
+            {% if appt.status == 'confirmed' %}border-success
+            {% elif appt.status == 'pending' %}border-warning
+            {% elif appt.status == 'cancelled' %}border-danger
+            {% else %}border-secondary{% endif %}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="mb-0"><i class="bi bi-person-circle text-theme"></i> {{ appt.patient_name }}</h5>
+                    <span class="badge
+                        {% if appt.status == 'confirmed' %}bg-success
+                        {% elif appt.status == 'pending' %}bg-warning text-dark
+                        {% elif appt.status == 'cancelled' %}bg-danger
+                        {% else %}bg-secondary{% endif %} rounded-pill">
+                        {{ appt.get_status_display }}
+                    </span>
+                </div>
+
+                <p class="text-muted small mb-1">
+                    <i class="bi bi-calendar3"></i> {{ appt.appointment_date }}
+                    &nbsp;<i class="bi bi-clock"></i> {{ appt.appointment_time }}
+                </p>
+                <p class="text-muted small mb-3">
+                    <i class="bi bi-clipboard2-pulse"></i> {{ appt.reason }}
+                </p>
+
+                <form method="post" action="{% url 'update_appointment_status_view' appt.id %}" id="status-form-{{ appt.id }}">
+    {% csrf_token %}
+    <input type="hidden" name="status" id="status-hidden-{{ appt.id }}" value="{{ appt.status }}">
+
+    <label class="form-label small fw-semibold mb-1">Status</label>
+    <div class="dropdown w-100">
+        <button class="btn status-dropdown-btn status-btn-{{ appt.status }} dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+            {% if appt.status == "pending" %}⏳ Pending
+            {% elif appt.status == "confirmed" %}✅ Confirmed
+            {% elif appt.status == "completed" %}🏁 Completed
+            {% elif appt.status == "cancelled" %}❌ Cancelled
+            {% endif %}
+        </button>
+        <ul class="dropdown-menu w-100 status-dropdown-menu">
+            <li><a class="dropdown-item status-dropdown-item" href="#" onclick="setStatus({{ appt.id }}, 'pending')">⏳ Pending</a></li>
+            <li><a class="dropdown-item status-dropdown-item" href="#" onclick="setStatus({{ appt.id }}, 'confirmed')">✅ Confirmed</a></li>
+            <li><a class="dropdown-item status-dropdown-item" href="#" onclick="setStatus({{ appt.id }}, 'completed')">🏁 Completed</a></li>
+            <li><a class="dropdown-item status-dropdown-item" href="#" onclick="setStatus({{ appt.id }}, 'cancelled')">❌ Cancelled</a></li>
+        </ul>
+    </div>
+</form>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-calendar-x" style="font-size: 2.5rem;"></i>
+            <p class="mt-2">No appointments booked with you yet.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    .status-dropdown-btn {
+        border-radius: 8px;
+        font-weight: 600;
+        border: 1.5px solid transparent;
+        transition: all 0.25s ease;
+    }
+    .status-dropdown-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .status-btn-pending { background-color: #fff8e1; color: #997404; border-color: #ffe69c; }
+    .status-btn-confirmed { background-color: #e6f4ea; color: #146c43; border-color: #a3d9b1; }
+    .status-btn-completed { background-color: #eceff1; color: #495057; border-color: #ced4da; }
+    .status-btn-cancelled { background-color: #fdecea; color: #b02a37; border-color: #f1aeb5; }
+
+    .status-dropdown-menu {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        padding: 6px;
+        animation: dropdownPop 0.2s ease;
+    }
+    @keyframes dropdownPop {
+        from { opacity: 0; transform: translateY(-6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .status-dropdown-item {
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-weight: 500;
+        transition: background-color 0.15s ease;
+    }
+    .status-dropdown-item:hover {
+        background-color: var(--theme-light);
+    }
+    .dash-card-wrap {
+        animation: cardRiseIn 0.4s ease backwards;
+    }
+    .dash-card-wrap:nth-child(1) { animation-delay: 0.04s; }
+    .dash-card-wrap:nth-child(2) { animation-delay: 0.08s; }
+    .dash-card-wrap:nth-child(3) { animation-delay: 0.12s; }
+    .dash-card-wrap:nth-child(4) { animation-delay: 0.16s; }
+    .dash-card-wrap:nth-child(5) { animation-delay: 0.20s; }
+    .dash-card-wrap:nth-child(6) { animation-delay: 0.24s; }
+    .dash-card-wrap:nth-child(7) { animation-delay: 0.28s; }
+    .dash-card-wrap:nth-child(8) { animation-delay: 0.32s; }
+
+    @keyframes cardRiseIn {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+<script>
+    function setStatus(appointmentId, status) {
+        document.getElementById(`status-hidden-${appointmentId}`).value = status;
+        document.getElementById(`status-form-${appointmentId}`).submit();
+    }
+</script>
+{% endblock %}

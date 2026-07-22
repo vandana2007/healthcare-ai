@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Doctor Sign Up{% endblock %}
+
+{% block content %}
+<h1>Doctor Registration</h1>
+
+<form method="post">
+    {% csrf_token %}
+
+    <label>Username:</label><br>
+    <input type="text" name="username" required><br><br>
+
+    <label>Password:</label><br>
+    <input type="password" name="password" required><br><br>
+
+    <label>Confirm Password:</label><br>
+    <input type="password" name="confirm_password" required><br><br>
+
+    <label>Full Name:</label><br>
+    <input type="text" name="full_name" placeholder="Dr. Ramesh Kumar" required><br><br>
+
+    <label>Specialization:</label><br>
+    <select name="specialization" required>
+        <option value="general_physician">General Physician</option>
+        <option value="cardiologist">Cardiologist</option>
+        <option value="dermatologist">Dermatologist</option>
+        <option value="pediatrician">Pediatrician</option>
+        <option value="orthopedic">Orthopedic</option>
+        <option value="ent">ENT Specialist</option>
+        <option value="gynecologist">Gynecologist</option>
+        <option value="neurologist">Neurologist</option>
+        <option value="psychiatrist">Psychiatrist</option>
+        <option value="dentist">Dentist</option>
+    </select><br><br>
+
+    <label>Hospital:</label><br>
+    <select name="hospital" required>
+        {% for hospital in hospitals %}
+            <option value="{{ hospital.id }}">{{ hospital.name }} ({{ hospital.city }})</option>
+        {% endfor %}
+    </select><br><br>
+
+    <label>Available Days:</label><br>
+    <label><input type="checkbox" name="available_days" value="0" checked> Mon</label>
+    <label><input type="checkbox" name="available_days" value="1" checked> Tue</label>
+    <label><input type="checkbox" name="available_days" value="2" checked> Wed</label>
+    <label><input type="checkbox" name="available_days" value="3" checked> Thu</label>
+    <label><input type="checkbox" name="available_days" value="4" checked> Fri</label>
+    <label><input type="checkbox" name="available_days" value="5"> Sat</label>
+    <label><input type="checkbox" name="available_days" value="6"> Sun</label>
+    <br><br>
+
+    <label>Available From:</label><br>
+    <input type="time" name="available_from" value="09:00" required><br><br>
+
+    <label>Available To:</label><br>
+    <input type="time" name="available_to" value="17:00" required><br><br>
+
+    <label>Years of Experience:</label><br>
+    <input type="number" name="years_of_experience" min="0" value="0"><br><br>
+
+    <button type="submit">Register as Doctor</button>
+</form>
+
+<p>Already have an account? <a href="{% url 'login_view' %}">Log in</a></p>
+{% endblock %}

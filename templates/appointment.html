@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% block title %}Appointments{% endblock %}
+
+{% block content %}
+<h2 class="text-theme mb-4"><i class="bi bi-calendar-plus-fill"></i> Book an Appointment</h2>
+
+<div class="card shadow border-0 mb-5 overflow-hidden">
+    <div class="p-3 text-white" style="background: linear-gradient(135deg, var(--theme-primary), var(--theme-primary-dark));">
+        <h5 class="mb-0"><i class="bi bi-clipboard2-pulse"></i> New Booking</h5>
+    </div>
+
+    <div class="card-body p-4">
+        <form method="post" action="{% url 'book_appointment_view' %}" id="booking-form">
+            {% csrf_token %}
+
+            <div class="row g-4">
+                <!-- Step 1: Patient Name -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        <span class="step-badge">1</span> Patient Name
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-person text-theme"></i></span>
+                        <input type="text" name="patient_name" class="form-control border-start-0" required>
+                    </div>
+                </div>
+
+                <!-- Step 2: Hospital -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        <span class="step-badge">2</span> Hospital
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-hospital text-theme"></i></span>
+                        <select id="hospital-select" class="form-select border-start-0" required>
+                            <option value="">-- Select Hospital --</option>
+                            {% for hospital in hospitals %}
+                                <option value="{{ hospital.id }}" {% if preselected_hospital_id == hospital.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ hospital.name }} ({{ hospital.city }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Step 3: Doctor -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        <span class="step-badge">3</span> Doctor
+                        <span id="doctor-spinner" class="spinner-border spinner-border-sm text-theme d-none ms-1"></span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-person-badge text-theme"></i></span>
+                        <select id="doctor-select" name="doctor" class="form-select border-start-0" required>
+                            <option value="">-- Select Hospital First --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Step 4: Date -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        <span class="step-badge">4</span> Date
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar3 text-theme"></i></span>
+                        <input type="date" id="date-select" name="appointment_date" class="form-control border-start-0" required>
+                    </div>
+                </div>
+
+                <!-- Step 5: Time Slot -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        <span class="step-badge">5</span> Available Time Slot
+                        <span id="slot-spinner" class="spinner-border spinner-border-sm text-theme d-none ms-1"></span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-clock text-theme"></i></span>
+                        <select id="slot-select" name="appointment_time" class="form-select border-start-0" required>
+                            <option value="">-- Select Doctor and Date First --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Step 6: Reason -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        <span class="step-badge">6</span> Reason
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-clipboard2-pulse text-theme"></i></span>
+                        <input type="text" name="reason" class="form-control border-start-0" placeholder="e.g., fever, checkup" required>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg mt-4 px-5">
+                <i class="bi bi-calendar-check"></i> Book Appointment
+            </button>
+        </form>
+    </div>
+</div>
+
+<h4 class="mb-3"><i class="bi bi-list-check"></i> Your Appointments</h4>
+
+<div class="row g-3">
+    {% for appt in appointments %}
+    <div class="col-md-6 col-lg-4 appt-card-wrap">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="mb-0">{{ appt.patient_name }}</h6>
+                    <span class="badge
+                        {% if appt.status == 'confirmed' %}bg-success
+                        {% elif appt.status == 'pending' %}bg-warning text-dark
+                        {% elif appt.status == 'cancelled' %}bg-danger
+                        {% else %}bg-secondary{% endif %} rounded-pill">
+                        {{ appt.get_status_display }}
+                    </span>
+                </div>
+                <p class="text-theme mb-1 small"><i class="bi bi-person-badge"></i> Dr. {{ appt.doctor.full_name }} ({{ appt.doctor.get_specialization_display }})</p>
+                <p class="text-muted small mb-1"><i class="bi bi-calendar3"></i> {{ appt.appointment_date }} at {{ appt.appointment_time }}</p>
+                <p class="text-muted small mb-3"><i class="bi bi-clipboard2-pulse"></i> {{ appt.reason }}</p>
+
+                <div class="d-flex gap-2">
+                    <a href="{% url 'appointment_edit_view' appt.id %}" class="btn btn-outline-primary btn-sm flex-fill">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                    <form method="post" action="{% url 'appointment_delete_view' appt.id %}" class="flex-fill">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger btn-sm w-100" onclick="return confirm('Cancel this appointment?');">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-calendar-x" style="font-size: 2.5rem;"></i>
+            <p class="mt-2">No appointments booked yet.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    .step-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background-color: var(--theme-primary);
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-right: 4px;
+    }
+
+    #booking-form .input-group-text,
+    #booking-form .form-control,
+    #booking-form .form-select {
+        transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    #booking-form .form-control:focus,
+    #booking-form .form-select:focus {
+        box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.15);
+        border-color: var(--theme-primary);
+    }
+
+    /* Fade-in animation applied to select options when populated */
+    @keyframes optionFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    .form-select.just-updated {
+        animation: optionFadeIn 0.4s ease;
+    }
+
+    /* Stagger animation for appointment cards on load */
+    .appt-card-wrap {
+        animation: cardRiseIn 0.5s ease backwards;
+    }
+    .appt-card-wrap:nth-child(1) { animation-delay: 0.05s; }
+    .appt-card-wrap:nth-child(2) { animation-delay: 0.1s; }
+    .appt-card-wrap:nth-child(3) { animation-delay: 0.15s; }
+    .appt-card-wrap:nth-child(4) { animation-delay: 0.2s; }
+    .appt-card-wrap:nth-child(5) { animation-delay: 0.25s; }
+    .appt-card-wrap:nth-child(6) { animation-delay: 0.3s; }
+
+    @keyframes cardRiseIn {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<script>
+function flashUpdated(el) {
+    el.classList.remove("just-updated");
+    void el.offsetWidth; // force reflow to restart animation
+    el.classList.add("just-updated");
+}
+
+document.getElementById("hospital-select").addEventListener("change", function() {
+    const hospitalId = this.value;
+    const doctorSelect = document.getElementById("doctor-select");
+    const spinner = document.getElementById("doctor-spinner");
+
+    doctorSelect.innerHTML = '<option value="">Loading...</option>';
+
+    if (!hospitalId) {
+        doctorSelect.innerHTML = '<option value="">-- Select Hospital First --</option>';
+        return;
+    }
+
+    spinner.classList.remove("d-none");
+
+    fetch(`/appointments/ajax/doctors/?hospital_id=${hospitalId}`)
+        .then(response => response.json())
+        .then(data => {
+            doctorSelect.innerHTML = '<option value="">-- Select Doctor --</option>';
+            data.doctors.forEach(doc => {
+                const option = document.createElement("option");
+                option.value = doc.id;
+                option.textContent = doc.label;
+                doctorSelect.appendChild(option);
+            });
+            spinner.classList.add("d-none");
+            flashUpdated(doctorSelect);
+        });
+});
+
+function loadSlots() {
+    const doctorId = document.getElementById("doctor-select").value;
+    const date = document.getElementById("date-select").value;
+    const slotSelect = document.getElementById("slot-select");
+    const spinner = document.getElementById("slot-spinner");
+
+    if (!doctorId || !date) {
+        slotSelect.innerHTML = '<option value="">-- Select Doctor and Date First --</option>';
+        return;
+    }
+
+    slotSelect.innerHTML = '<option value="">Loading...</option>';
+    spinner.classList.remove("d-none");
+
+    fetch(`/appointments/ajax/slots/?doctor_id=${doctorId}&date=${date}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.slots.length === 0) {
+                slotSelect.innerHTML = '<option value="">No slots available this day</option>';
+            } else {
+                slotSelect.innerHTML = '<option value="">-- Select Time --</option>';
+                data.slots.forEach(slot => {
+                    const option = document.createElement("option");
+                    option.value = slot;
+                    option.textContent = slot;
+                    slotSelect.appendChild(option);
+                });
+            }
+            spinner.classList.add("d-none");
+            flashUpdated(slotSelect);
+        });
+}
+
+document.getElementById("doctor-select").addEventListener("change", loadSlots);
+document.getElementById("date-select").addEventListener("change", loadSlots);
+
+window.addEventListener("DOMContentLoaded", function() {
+    const preselectedHospital = "{{ preselected_hospital_id|default:'' }}";
+    const preselectedDoctor = "{{ preselected_doctor_id|default:'' }}";
+
+    if (preselectedHospital) {
+        document.getElementById("hospital-select").dispatchEvent(new Event("change"));
+        setTimeout(() => {
+            const doctorSelect = document.getElementById("doctor-select");
+            if (preselectedDoctor) doctorSelect.value = preselectedDoctor;
+        }, 600);
+    }
+});
+</script>
+{% endblock %}
