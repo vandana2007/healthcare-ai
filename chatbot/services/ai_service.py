@@ -1,26 +1,29 @@
 """
 chatbot/services/ai_service.py
 ==============================================
-This file contains ALL logic for talking to Google Gemini.
-Updated to use the new "google-genai" SDK (the old
-"google-generativeai" package is now legacy/deprecated).
+This file contains ALL logic for talking to the AI provider.
+Switched from Google Gemini to Groq (Llama 3.3 70B) due to
+Google's ongoing API key authentication rollout issues.
+
+No other file needs to change — get_ai_response() keeps the
+exact same function signature as before.
 ==============================================
 """
 
 import os
+import time
 from pathlib import Path
-from google import genai
+from groq import Groq
 
 # --------------------------------------------------
-# STEP 1: Create the Gemini client using our API key
+# STEP 1: Create the Groq client using our API key
 # --------------------------------------------------
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-client = genai.Client(api_key=GEMINI_API_KEY)
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+client = Groq(api_key=GROQ_API_KEY)
 
-# The current stable, auto-updating model alias.
-# Using "gemini-flash-latest" means we automatically benefit
-# from future model upgrades without changing this code.
-MODEL_NAME = "gemini-flash-latest"
+# Fast, capable open-source model — good fit for chat +
+# symptom-checking + multilingual responses.
+MODEL_NAME = "llama-3.3-70b-versatile"
 
 # --------------------------------------------------
 # STEP 2: Load the system prompt template from file
@@ -73,6 +76,8 @@ def get_ai_response(user_message: str, language_code: str, conversation_history:
     conversation_history: list of dicts like
     [{"role": "user", "parts": [{"text": "..."}]},
      {"role": "model", "parts": [{"text": "..."}]}]
+    (kept in this format since views.py already builds it this way —
+    we convert it internally to Groq's expected format below.)
     """
 
     # --- Step A: Emergency check FIRST ---
@@ -83,42 +88,39 @@ def get_ai_response(user_message: str, language_code: str, conversation_history:
     # --- Step B: Build language-specific system instruction ---
     system_instruction = build_system_prompt(language_code)
 
-    # --- Step C: Build the full conversation contents for this call ---
-    # The new SDK expects "contents" as a list of turns, ending with
-    # the new user message.
-    contents = conversation_history + [
-        {"role": "user", "parts": [{"text": user_message}]}
-    ]
+    # --------------------------------------------------
+    # Step C: Convert conversation_history (Gemini-style) into
+    # Groq/OpenAI-style messages list: [{"role": ..., "content": ...}]
+    # --------------------------------------------------
+    messages = [{"role": "system", "content": system_instruction}]
 
-    # --- Step D: Call Gemini ---
-    # --- Step D: Call Gemini (with a simple retry for temporary overload) ---
-    import time
+    for entry in conversation_history:
+        role = "user" if entry["role"] == "user" else "assistant"
+        text = entry["parts"][0]["text"]
+        messages.append({"role": role, "content": text})
 
-    max_retries = 4
+    messages.append({"role": "user", "content": user_message})
+
+    # --- Step D: Call Groq (with retry for transient errors) ---
+    max_retries = 3
     ai_reply = None
 
     for attempt in range(max_retries):
         try:
-            response = client.models.generate_content(
+            response = client.chat.completions.create(
                 model=MODEL_NAME,
-                contents=contents,
-                config={"system_instruction": system_instruction},
+                messages=messages,
             )
-            ai_reply = response.text
+            ai_reply = response.choices[0].message.content
             break
         except Exception as e:
             error_text = str(e)
-            print(f"[ai_service.py] Gemini API error (attempt {attempt + 1}/{max_retries}): {e}")
+            print(f"[ai_service.py] Groq API error (attempt {attempt + 1}/{max_retries}): {e}")
 
-            # --------------------------------------------------
-            # 429 = quota exhausted. Retrying won't help until
-            # the daily quota resets, so fail immediately with a
-            # clear message instead of wasting remaining attempts.
-            # --------------------------------------------------
-            if "429" in error_text or "RESOURCE_EXHAUSTED" in error_text:
+            if "429" in error_text or "rate_limit" in error_text.lower():
                 ai_reply = (
                     "We've reached today's usage limit for the AI service. "
-                    "Please try again after some time, or come back tomorrow."
+                    "Please try again after some time."
                 )
                 break
 
@@ -129,4 +131,5 @@ def get_ai_response(user_message: str, language_code: str, conversation_history:
                     "Sorry, I'm having trouble processing your request right now. "
                     "Please try again in a moment."
                 )
+
     return ai_reply, False
