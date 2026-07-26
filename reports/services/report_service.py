@@ -14,13 +14,13 @@ import PyPDF2
 import pytesseract
 from PIL import Image
 from google import genai
-
+from groq import Groq
 # --------------------------------------------------
 # Reuse the same Gemini client setup as ai_service.py
 # --------------------------------------------------
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-client = genai.Client(api_key=GEMINI_API_KEY)
-MODEL_NAME = "gemini-flash-latest"
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+client = Groq(api_key=GROQ_API_KEY)
+MODEL_NAME = "llama-3.3-70b-versatile"
 
 
 def clean_extracted_text(text: str) -> str:
@@ -143,11 +143,17 @@ Report content:
 """
 
     try:
-        response = client.models.generate_content(
+        response = client.chat.completions.create(
             model=MODEL_NAME,
-            contents=prompt,
+            messages=[
+                {
+                    "role":"user",
+                    "content":prompt
+                }
+            ],
+            temperature=0.3,
         )
-        return response.text
+        return response.choices[0].message.content
     except Exception as e:
         print(f"[report_service.py] Gemini explanation error: {e}")
         return (
