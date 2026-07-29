@@ -24,6 +24,7 @@ MODEL_NAME = "llama-3.3-70b-versatile"
 
 
 def clean_extracted_text(text: str) -> str:
+    print(f"extract_text() called for: {filename}")
     """
     Removes lines that are almost certainly OCR garbage —
     short, mostly non-alphanumeric fragments produced by
@@ -92,6 +93,10 @@ def extract_text_from_image(file_path: str) -> str:
         image = Image.open(file_path)
         custom_config = r"--oem 3 --psm 6"
         raw_text = pytesseract.image_to_string(image, config=custom_config)
+        print("=" * 50)
+        print("RAW OCR TEXT:")
+        print(raw_text)
+        print("=" * 50)
         text = clean_extracted_text(raw_text)
     except Exception as e:
         print(f"[report_service.py] OCR extraction error: {e}")
