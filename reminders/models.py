@@ -76,3 +76,9 @@ class Reminder(models.Model):
 
     def __str__(self):
         return f"{self.medicine_name} ({self.times}) - {self.user.username}"
+class PushSubscription(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="push_subscriptions")
+    endpoint = models.URLField(max_length=500)
+    p256dh_key = models.CharField(max_length=255)
+    auth_key = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)

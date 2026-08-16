@@ -4,3 +4,5 @@ __pycache__/
 .env
 media/
 staticfiles/
+private_key.pem
+public_key.pem

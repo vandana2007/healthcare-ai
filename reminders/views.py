@@ -6,14 +6,35 @@ reminder, plus a JSON endpoint the browser polls to check
 for due reminders (powers real notifications).
 ==============================================
 """
+import json
 
+from django.views.decorators.csrf import csrf_exempt
+from .models import PushSubscription
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-
+from datetime import datetime
+from pywebpush import webpush, WebPushException
+from django.conf import settings
 from .models import Reminder
+from django.core.mail import send_mail
+@csrf_exempt
+@login_required
+def save_subscription(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
 
+        PushSubscription.objects.update_or_create(
+            user=request.user,
+            endpoint=data["endpoint"],
+            defaults={
+                "p256dh_key": data["keys"]["p256dh"],
+                "auth_key": data["keys"]["auth"]
+            }
+        )
+
+        return JsonResponse({"status":"saved"})
 
 @login_required
 def reminder_list_view(request):
@@ -89,3 +110,48 @@ def active_reminder_times_view(request):
         for r in reminders
     ]
     return JsonResponse({"reminders": data})
+def send_push_notifications(request):
+    now = datetime.now()
+    current_time = now.strftime("%H:%M")
+
+    active_reminders = Reminder.objects.filter(is_active=True)
+    sent_count = 0
+
+    for reminder in active_reminders:
+        if current_time in reminder.get_times_list():
+            subject = "💊 Medicine Reminder"
+            body = f"Time to take {reminder.medicine_name}" + (f" ({reminder.dosage})" if reminder.dosage else "")
+
+            # --- Push notification (existing) ---
+            subscriptions = PushSubscription.objects.filter(user=reminder.user)
+            for sub in subscriptions:
+                try:
+                    webpush(
+                        subscription_info={
+                            "endpoint": sub.endpoint,
+                            "keys": {"p256dh": sub.p256dh_key, "auth": sub.auth_key}
+                        },
+                        data=json.dumps({"title": subject, "body": body}),
+                        vapid_private_key=settings.VAPID_PRIVATE_KEY_FILE,
+                        vapid_claims={"sub": settings.VAPID_CLAIMS_EMAIL},
+                    )
+                    sent_count += 1
+                except WebPushException as e:
+                    print(f"[send_push_notifications] Push failed: {e}")
+                    if "410" in str(e) or "404" in str(e):
+                        sub.delete()
+
+            # --- Email notification (NEW) ---
+            if reminder.user.email:
+                try:
+                    send_mail(
+                        subject=subject,
+                        message=body,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[reminder.user.email],
+                        fail_silently=False,
+                    )
+                except Exception as e:
+                    print(f"[send_push_notifications] Email failed: {e}")
+
+    return JsonResponse({"status": "checked", "sent": sent_count, "time_checked": current_time})

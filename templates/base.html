@@ -5,114 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}AI Healthcare Assistant{% endblock %}</title>
 
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
 
     <style>
-        /* ==========================================================
-           THEME VARIABLES — Purple/Indigo
-           ========================================================== */
-        /* ==========================================================
-           MARKDOWN-RENDERED AI EXPLANATION STYLING
-           ========================================================== */
-        /* ==========================================================
-           USER GREETING BADGE — non-interactive, visually distinct
-           from clickable nav links
-           ========================================================== */
-        .user-greeting {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background-color: rgba(255, 255, 255, 0.15);
-            color: var(--theme-text-on-primary);
-            padding: 6px 14px;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-           #ai-explanation-rendered h2 {
-            color: var(--theme-primary-dark);
-            font-size: 1.15rem;
-            margin-top: 1.2rem;
-            margin-bottom: 0.6rem;
-            font-weight: 600;
-        }
-        #ai-explanation-rendered h2:first-child {
-            margin-top: 0;
-        }
-        #ai-explanation-rendered ul {
-            padding-left: 1.3rem;
-        }
-        #ai-explanation-rendered li {
-            margin-bottom: 0.4rem;
-        }
-        #ai-explanation-rendered strong {
-            color: #333;
-        }
-        #ai-explanation-rendered hr {
-            border-top: 1px solid #e0d4f5;
-            margin: 1rem 0;
-        }
-        /* ==========================================================
-           STYLED DROPDOWNS (selects) — interactive feel
-           ========================================================== */
-        .form-select {
-            transition: all 0.25s ease;
-            cursor: pointer;
-            border-width: 1.5px;
-        }
-
-        .form-select:hover {
-            border-color: var(--theme-primary);
-            box-shadow: 0 2px 8px rgba(111, 66, 193, 0.12);
-            transform: translateY(-1px);
-        }
-
-        .form-select:focus {
-            border-color: var(--theme-primary);
-            box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.2);
-        }
-
-        /* --------------------------------------------------
-           Status dropdown — background color shifts to match
-           the selected status, giving instant visual feedback.
-        -------------------------------------------------- */
-        .status-select {
-            font-weight: 600;
-            border-radius: 8px !important;
-        }
-        .status-select.status-pending {
-            background-color: #fff8e1;
-            color: #997404;
-            border-color: #ffe69c !important;
-        }
-        .status-select.status-confirmed {
-            background-color: #e6f4ea;
-            color: #146c43;
-            border-color: #a3d9b1 !important;
-        }
-        .status-select.status-completed {
-            background-color: #eceff1;
-            color: #495057;
-            border-color: #ced4da !important;
-        }
-        .status-select.status-cancelled {
-            background-color: #fdecea;
-            color: #b02a37;
-            border-color: #f1aeb5 !important;
-        }
-
-        /* Pulse animation when status changes (brief confirmation flash) */
-        @keyframes statusPulse {
-            0%   { transform: scale(1); }
-            50%  { transform: scale(1.04); }
-            100% { transform: scale(1); }
-        }
-        .status-select.just-changed {
-            animation: statusPulse 0.35s ease;
-        }
         :root {
             --theme-primary: #6f42c1;
             --theme-primary-dark: #59339d;
@@ -125,42 +21,14 @@
             font-family: 'Segoe UI', Roboto, Arial, sans-serif;
         }
 
-        .navbar-custom {
-            background-color: var(--theme-primary) !important;
-        }
-
-        .navbar-custom .navbar-brand,
-        .navbar-custom .nav-link {
-            color: var(--theme-text-on-primary) !important;
-        }
-
-        .navbar-custom .nav-link:hover {
-            color: var(--theme-light) !important;
-        }
-
-        .btn-primary {
-            background-color: var(--theme-primary);
-            border-color: var(--theme-primary);
-        }
-
-        .btn-primary:hover {
-            background-color: var(--theme-primary-dark);
-            border-color: var(--theme-primary-dark);
-        }
-
-        .card-header-custom {
-            background-color: var(--theme-light);
-            color: var(--theme-primary-dark);
-            font-weight: 600;
-        }
-
-        .text-theme {
-            color: var(--theme-primary) !important;
-        }
-
-        .badge-theme {
-            background-color: var(--theme-primary) !important;
-        }
+        .navbar-custom { background-color: var(--theme-primary) !important; }
+        .navbar-custom .navbar-brand, .navbar-custom .nav-link { color: var(--theme-text-on-primary) !important; }
+        .navbar-custom .nav-link:hover { color: var(--theme-light) !important; }
+        .btn-primary { background-color: var(--theme-primary); border-color: var(--theme-primary); }
+        .btn-primary:hover { background-color: var(--theme-primary-dark); border-color: var(--theme-primary-dark); }
+        .card-header-custom { background-color: var(--theme-light); color: var(--theme-primary-dark); font-weight: 600; }
+        .text-theme { color: var(--theme-primary) !important; }
+        .badge-theme { background-color: var(--theme-primary) !important; }
 
         footer {
             background-color: #f1f3f5;
@@ -175,78 +43,36 @@
             min-height: calc(100vh - 220px);
             padding-top: 30px;
             padding-bottom: 30px;
-        }
-
-        /* ==========================================================
-           ANIMATIONS & INTERACTIVITY
-           ========================================================== */
-
-        .main-container {
             animation: fadeInUp 0.5s ease-out;
         }
 
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(15px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .card {
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
-        }
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(111, 66, 193, 0.15) !important;
-        }
+        .card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(111, 66, 193, 0.15) !important; }
 
-        .btn {
-            transition: all 0.2s ease;
-        }
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-        }
-        .btn:active {
-            transform: translateY(0);
-        }
+        .btn { transition: all 0.2s ease; }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .btn:active { transform: translateY(0); }
 
-        .navbar-custom .nav-link {
-            position: relative;
-        }
+        .navbar-custom .nav-link { position: relative; }
         .navbar-custom .nav-link::after {
-            content: '';
-            position: absolute;
-            width: 0%;
-            height: 2px;
-            bottom: 0;
-            left: 0;
-            background-color: white;
-            transition: width 0.3s ease;
+            content: ''; position: absolute; width: 0%; height: 2px; bottom: 0; left: 0;
+            background-color: white; transition: width 0.3s ease;
         }
-        .navbar-custom .nav-link:hover::after {
-            width: 100%;
-        }
+        .navbar-custom .nav-link:hover::after { width: 100%; }
 
-        .table-hover tbody tr {
-            transition: background-color 0.2s ease;
-        }
+        .table-hover tbody tr { transition: background-color 0.2s ease; }
 
-        .alert {
-            animation: slideDown 0.4s ease-out;
-        }
+        .alert { animation: slideDown 0.4s ease-out; }
         @keyframes slideDown {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* --------------------------------------------------
-           SCROLLING HEALTH TIPS TICKER
-        -------------------------------------------------- */
         .ticker-wrap {
             background-color: var(--theme-light);
             border-bottom: 1px solid var(--theme-primary);
@@ -261,21 +87,28 @@
             color: var(--theme-primary-dark);
             font-weight: 500;
         }
-        .ticker-wrap:hover .ticker-content {
-            animation-play-state: paused;
-        }
+        .ticker-wrap:hover .ticker-content { animation-play-state: paused; }
         @keyframes ticker-scroll {
-            0%   { transform: translateX(0); }
+            0% { transform: translateX(0); }
             100% { transform: translateX(-100%); }
         }
-        .ticker-content i {
-            margin: 0 8px;
+        .ticker-content i { margin: 0 8px; }
+
+        .user-greeting {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: rgba(255, 255, 255, 0.15);
+            color: var(--theme-text-on-primary);
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
 
-    <!-- ============================== NAVBAR ============================== -->
     <nav class="navbar navbar-expand-lg navbar-custom shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-bold" href="{% if user.is_authenticated %}{% if user.doctor_profile %}{% url 'doctor_dashboard_view' %}{% else %}{% url 'chat_view' %}{% endif %}{% else %}{% url 'login_view' %}{% endif %}">
@@ -298,6 +131,7 @@
                             <li class="nav-item"><a class="nav-link" href="{% url 'appointment_list_view' %}"><i class="bi bi-calendar-plus"></i> Appointments</a></li>
                             <li class="nav-item"><a class="nav-link" href="{% url 'reminder_list_view' %}"><i class="bi bi-bell"></i> Reminders</a></li>
                             <li class="nav-item"><a class="nav-link" href="{% url 'report_list_view' %}"><i class="bi bi-file-earmark-medical"></i> Reports</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'profile_view' %}"><i class="bi bi-person-gear"></i> Profile</a></li>
                             <li class="nav-item ms-lg-3 my-1 my-lg-0">
                                 <span class="user-greeting"><i class="bi bi-person-circle"></i> Hello, {{ user.username }}</span>
                             </li>
@@ -318,7 +152,6 @@
         </div>
     </nav>
 
-    <!-- ============================== HEALTH TIPS TICKER ============================== -->
     <div class="ticker-wrap">
         <div class="ticker-content">
             <i class="bi bi-heart-pulse-fill text-theme"></i> Drink at least 8 glasses of water daily
@@ -331,7 +164,6 @@
         </div>
     </div>
 
-    <!-- ============================== MESSAGES ============================== -->
     <div class="container mt-3">
         {% if messages %}
             {% for message in messages %}
@@ -343,26 +175,23 @@
         {% endif %}
     </div>
 
-    <!-- ============================== PAGE CONTENT ============================== -->
     <div class="container main-container">
         {% block content %}
         {% endblock %}
     </div>
 
-    <!-- ============================== FOOTER ============================== -->
     <footer>
         <div class="container">
             &copy; 2026 AI Healthcare Assistant. Built for informational purposes — always consult a qualified doctor.
         </div>
     </footer>
 
-    <!-- Bootstrap JS Bundle (includes Popper for dropdowns/navbar toggle) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
 
     {% if user.is_authenticated and not user.doctor_profile %}
     <script>
     // --------------------------------------------------
-    // MEDICINE REMINDER NOTIFICATIONS
+    // MEDICINE REMINDER NOTIFICATIONS (in-browser polling)
     // --------------------------------------------------
     if ("Notification" in window && Notification.permission === "default") {
         Notification.requestPermission();
@@ -392,6 +221,58 @@
     }
     setInterval(checkReminders, 30000);
     checkReminders();
+    </script>
+
+    <script>
+    // --------------------------------------------------
+    // WEB PUSH: register service worker and subscribe
+    // --------------------------------------------------
+    const VAPID_PUBLIC_KEY = "{{ vapid_public_key }}";
+
+    function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
+    }
+
+    async function subscribeToPush() {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            console.log("Push notifications not supported on this browser.");
+            return;
+        }
+
+        try {
+            const registration = await navigator.serviceWorker.register('/static/sw.js');
+
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                console.log("Push permission not granted.");
+                return;
+            }
+
+            let subscription = await registration.pushManager.getSubscription();
+
+            if (!subscription) {
+                subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+                });
+            }
+
+            await fetch("{% url 'save_subscription' %}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(subscription),
+            });
+
+            console.log("Push subscription saved.");
+        } catch (err) {
+            console.error("Push subscription failed:", err);
+        }
+    }
+
+    subscribeToPush();
     </script>
     {% endif %}
 </body>

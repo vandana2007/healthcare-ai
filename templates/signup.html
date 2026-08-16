@@ -11,27 +11,34 @@
                 <form method="post">
                     {% csrf_token %}
 
-                    <div class="mb-3">
-                        <label class="form-label d-block">I am a:</label>
-                        <div class="btn-group w-100" role="group">
-                            <input type="radio" class="btn-check" name="role" id="role-patient" value="patient" checked onclick="toggleDoctorFields()">
-                            <label class="btn btn-outline-primary" for="role-patient"><i class="bi bi-person"></i> Patient</label>
+                    <label class="form-label d-block">I am a:</label>
+                    <div class="btn-group w-100 mb-3" role="group">
+                        <input type="radio" class="btn-check" name="role" id="role-patient" value="patient" checked onclick="toggleDoctorFields()">
+                        <label class="btn btn-outline-primary" for="role-patient"><i class="bi bi-person"></i> Patient</label>
 
-                            <input type="radio" class="btn-check" name="role" id="role-doctor" value="doctor" onclick="toggleDoctorFields()">
-                            <label class="btn btn-outline-primary" for="role-doctor"><i class="bi bi-heart-pulse"></i> Doctor</label>
-                        </div>
+                        <input type="radio" class="btn-check" name="role" id="role-doctor" value="doctor" onclick="toggleDoctorFields()">
+                        <label class="btn btn-outline-primary" for="role-doctor"><i class="bi bi-heart-pulse"></i> Doctor</label>
                     </div>
 
                     <div class="row">
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-6 mb-3">
                             <label class="form-label">Username</label>
                             <input type="text" name="username" class="form-control" required>
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Phone Number</label>
+                            <input type="text" name="phone_number" class="form-control" placeholder="e.g., 9876543210" required>
+                        </div>
+                        <div class="col-md-6"></div>
+                        <div class="col-md-6 mb-3">
                             <label class="form-label">Password</label>
                             <input type="password" name="password" class="form-control" required>
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-6 mb-3">
                             <label class="form-label">Confirm Password</label>
                             <input type="password" name="confirm_password" class="form-control" required>
                         </div>

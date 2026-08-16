@@ -86,6 +86,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "healthcare_project.context_processors.vapid_key",
             ],
         },
     },
@@ -175,3 +176,29 @@ LOGOUT_REDIRECT_URL = "login_view"
 # Nominatim (OpenStreetMap) requires a unique app identifier
 # in every request — this is their usage policy, not optional.
 GEOCODING_USER_AGENT = "ai_healthcare_assistant_app"
+#added
+# -----------------------------
+# Web Push (VAPID)
+# -----------------------------
+VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY")
+VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY")
+VAPID_CLAIMS = {
+    "sub": os.getenv("VAPID_CLAIMS_EMAIL")
+}
+# --------------------------------------------------
+# Web Push (VAPID) configuration
+# --------------------------------------------------
+VAPID_PRIVATE_KEY_FILE = os.getenv("VAPID_PRIVATE_KEY_FILE", "private_key.pem")
+VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY", "")
+VAPID_CLAIMS_EMAIL = os.getenv("VAPID_CLAIMS_EMAIL", "mailto:admin@example.com")
+
+# --------------------------------------------------
+# Email configuration (Gmail SMTP)
+# --------------------------------------------------
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

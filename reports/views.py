@@ -12,7 +12,8 @@ from django.contrib.auth.decorators import login_required
 
 from .models import Report
 from .services.report_service import extract_text, get_report_explanation
-
+from django.core.mail import send_mail
+from django.conf import settings
 
 @login_required
 def report_list_view(request):
@@ -72,7 +73,18 @@ def report_list_view(request):
         report.ai_explanation = explanation
         report.status = "completed"
         report.save()
-
+        # --- Email the explanation to the patient ---
+        if request.user.email:
+            try:
+                send_mail(
+                    subject=f"Your Medical Report Explanation — {report.original_filename}",
+                    message=explanation,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[request.user.email],
+                    fail_silently=True,
+                )
+            except Exception as e:
+                print(f"[reports/views.py] Email failed: {e}")
         messages.success(request, "Report uploaded and explained successfully!")
         return redirect("report_list_view")
 

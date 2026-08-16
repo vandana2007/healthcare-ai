@@ -14,4 +14,6 @@ urlpatterns = [
     path("<int:reminder_id>/toggle/", views.reminder_toggle_view, name="reminder_toggle_view"),
     path("<int:reminder_id>/delete/", views.reminder_delete_view, name="reminder_delete_view"),
     path("ajax/active-times/", views.active_reminder_times_view, name="active_reminder_times_view"),
+    path("subscribe/", views.save_subscription, name="save_subscription"),
+    path("send-push/", views.send_push_notifications),
 ]
