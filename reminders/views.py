@@ -114,6 +114,16 @@ def send_push_notifications(request):
     now = datetime.now()
     current_time = now.strftime("%H:%M")
 
+    # --------------------------------------------------
+    # Write the VAPID private key (from env variable) to a
+    # temporary file, since pywebpush expects a file path.
+    # This avoids needing to commit the actual .pem file to Git.
+    # --------------------------------------------------
+    import tempfile
+    vapid_key_file = tempfile.NamedTemporaryFile(mode="w", suffix=".pem", delete=False)
+    vapid_key_file.write(settings.VAPID_PRIVATE_KEY)
+    vapid_key_file.close()
+
     active_reminders = Reminder.objects.filter(is_active=True)
     sent_count = 0
 
@@ -122,7 +132,6 @@ def send_push_notifications(request):
             subject = "💊 Medicine Reminder"
             body = f"Time to take {reminder.medicine_name}" + (f" ({reminder.dosage})" if reminder.dosage else "")
 
-            # --- Push notification (existing) ---
             subscriptions = PushSubscription.objects.filter(user=reminder.user)
             for sub in subscriptions:
                 try:
@@ -132,7 +141,7 @@ def send_push_notifications(request):
                             "keys": {"p256dh": sub.p256dh_key, "auth": sub.auth_key}
                         },
                         data=json.dumps({"title": subject, "body": body}),
-                        vapid_private_key=settings.VAPID_PRIVATE_KEY_FILE,
+                        vapid_private_key=vapid_key_file.name,
                         vapid_claims={"sub": settings.VAPID_CLAIMS_EMAIL},
                     )
                     sent_count += 1
@@ -141,7 +150,6 @@ def send_push_notifications(request):
                     if "410" in str(e) or "404" in str(e):
                         sub.delete()
 
-            # --- Email notification (NEW) ---
             if reminder.user.email:
                 try:
                     send_mail(
@@ -153,5 +161,8 @@ def send_push_notifications(request):
                     )
                 except Exception as e:
                     print(f"[send_push_notifications] Email failed: {e}")
+
+    import os as os_module
+    os_module.unlink(vapid_key_file.name)  # clean up the temp file
 
     return JsonResponse({"status": "checked", "sent": sent_count, "time_checked": current_time})
