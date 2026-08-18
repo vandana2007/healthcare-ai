@@ -23,7 +23,7 @@ client = Groq(api_key=GROQ_API_KEY)
 
 # Fast, capable open-source model — good fit for chat +
 # symptom-checking + multilingual responses.
-MODEL_NAME = "llama-3.3-70b-versatile"
+MODEL_NAME = "openai/gpt-oss-120b"
 
 # --------------------------------------------------
 # STEP 2: Load the system prompt template from file
