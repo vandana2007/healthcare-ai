@@ -36,7 +36,6 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "django.contrib.staticfiles",
 
     # --- Third-party apps ---
     "rest_framework",
@@ -50,6 +49,9 @@ INSTALLED_APPS = [
     "accounts",
     "hospitals",
     "doctors",
+    "cloudinary_storage",
+    "django.contrib.staticfiles",
+    "cloudinary",
 ]
 
 # --------------------------------------------------
@@ -202,3 +204,14 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# --------------------------------------------------
+# Cloudinary — persistent cloud storage for uploaded
+# files (profile pics, reports), since Render's free
+# tier has no persistent disk.
+# --------------------------------------------------
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
+    "API_KEY": os.getenv("CLOUDINARY_API_KEY"),
+    "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
+}
+DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
